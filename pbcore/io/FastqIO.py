@@ -227,4 +227,4 @@ def qvsFromAscii(s):
     return (np.fromstring(s, dtype=np.uint8) - 33)
 
 def asciiFromQvs(a):
-    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring()
+    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring().decode('utf-8')

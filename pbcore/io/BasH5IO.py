@@ -232,7 +232,7 @@ class ZmwRead(CommonEqualityMixin):
 
     def basecalls(self):
         return arrayFromDataset(self._getBasecallsGroup()["Basecall"],
-                                self.offsetBegin, self.offsetEnd).tostring()
+                                self.offsetBegin, self.offsetEnd).tostring().decode('utf-8')
 
     def qv(self, qvName):
         return arrayFromDataset(self._getBasecallsGroup()[qvName],
@@ -470,7 +470,10 @@ class BaxH5Reader(object):
         else:
             movieNameString = movieNameAttr
 
-        if not isinstance(movieNameString, basestring):
+        if isinstance(movieNameString, bytes):
+            movieNameString = movieNameString.decode('utf-8')
+
+        if not isinstance(movieNameString, str):
             raise TypeError("Unsupported movieName {m} of type {t}."
                              .format(m=movieNameString,
                                      t=type(movieNameString)))
@@ -666,7 +669,7 @@ class BasH5Reader(object):
             self.file        = None
             self._parts      = [ BaxH5Reader(fn) for fn in partFilenames ]
             holeLookupDict   = { hn : (i + 1)
-                                 for i in xrange(len(self._parts))
+                                 for i in range(len(self._parts))
                                  for hn in self._parts[i]._holeNumberToIndex }
             self._holeLookup = lambda hn: holeLookupDict[hn]
         self._sequencingZmws = np.concatenate([ part.sequencingZmws
