@@ -50,9 +50,9 @@ _cBasemap = { 0b0000 : ord("-"),
 _basemapArray  = np.ndarray(shape=(max(_basemap.keys()) + 1,), dtype=np.byte)
 _cBasemapArray = np.ndarray(shape=(max(_basemap.keys()) + 1,), dtype=np.byte)
 
-for (e, v) in _basemap.iteritems():
+for (e, v) in _basemap.items():
     _basemapArray[e] = v
-for (e, v) in _cBasemap.iteritems():
+for (e, v) in _cBasemap.items():
     _cBasemapArray[e] = v
 
 _baseEncodingToInt = np.array([-1]*16)

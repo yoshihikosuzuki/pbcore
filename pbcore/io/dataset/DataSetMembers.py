@@ -70,8 +70,7 @@ import os
 import operator as OP
 import numpy as np
 import re
-from urlparse import urlparse
-from urllib import unquote
+from urllib.parse import urlparse, unquote
 from functools import partial as P
 from collections import Counter, defaultdict
 from pbcore.io.dataset.utils import getTimeStampedName

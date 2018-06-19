@@ -8,7 +8,7 @@ except ImportError:
     h5py = h5py_dummy()
 
 import numpy as np
-from cStringIO import StringIO
+from io import StringIO
 
 
 def arrayFromDataset(ds, offsetBegin, offsetEnd):
@@ -53,7 +53,7 @@ def splitFileContents(f, delimiter, BLOCKSIZE=8192):
 
 def is_string_like(obj):
     'Return True if *obj* looks like a string'
-    if isinstance(obj, (str, unicode)): return True
+    if isinstance(obj, (str, bytes)): return True
     # numpy strings are subclass of str, ma strings are not
     if np.ma.isMaskedArray(obj):
         if obj.ndim == 0 and obj.dtype.kind in 'SU':

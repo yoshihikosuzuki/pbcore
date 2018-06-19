@@ -19,7 +19,7 @@ import tempfile
 import uuid
 import xml.dom.minidom
 import numpy as np
-from urlparse import urlparse
+from urllib.parse import urlparse
 from functools import wraps, partial
 from collections import defaultdict, Counter
 from pbcore.util.Process import backticks
