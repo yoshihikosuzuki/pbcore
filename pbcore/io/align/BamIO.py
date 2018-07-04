@@ -1,7 +1,7 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
-from __future__ import division
+
+
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
@@ -47,11 +47,11 @@ class _BamReaderBase(ReaderBase):
         refNames   = [r["SN"] for r in refRecords]
         refLengths = [r["LN"] for r in refRecords]
         refMD5s    = [r["M5"] for r in refRecords]
-        refIds = map(self.peer.get_tid, refNames)
+        refIds = list(map(self.peer.get_tid, refNames))
         nRefs = len(refRecords)
 
         if nRefs > 0:
-            self._referenceInfoTable = np.rec.fromrecords(zip(
+            self._referenceInfoTable = np.rec.fromrecords(list(zip(
                 refIds,
                 refIds,
                 refNames,
@@ -59,14 +59,14 @@ class _BamReaderBase(ReaderBase):
                 refLengths,
                 refMD5s,
                 np.zeros(nRefs, dtype=np.uint32),
-                np.zeros(nRefs, dtype=np.uint32)),
+                np.zeros(nRefs, dtype=np.uint32))),
                 dtype=[('ID', '<i8'), ('RefInfoID', '<i8'),
                        ('Name', 'O'), ('FullName', 'O'),
                        ('Length', '<i8'), ('MD5', 'O'),
                        ('StartRow', '<u4'), ('EndRow', '<u4')])
             self._referenceDict = {}
-            self._referenceDict.update(zip(refIds, self._referenceInfoTable))
-            self._referenceDict.update(zip(refNames, self._referenceInfoTable))
+            self._referenceDict.update(list(zip(refIds, self._referenceInfoTable)))
+            self._referenceDict.update(list(zip(refNames, self._referenceInfoTable)))
         else:
             self._referenceInfoTable = None
             self._referenceDict = None
@@ -100,16 +100,16 @@ class _BamReaderBase(ReaderBase):
             # (This is a bit messy.  Can we separate the manifest from
             # the rest of the DS content?)
             baseFeatureNameMapping  = { key.split(":")[0] : key
-                                        for key in ds.keys()
+                                        for key in list(ds.keys())
                                         if key in BASE_FEATURE_TAGS }
             pulseFeatureNameMapping = { key.split(":")[0] : key
-                                        for key in ds.keys()
+                                        for key in list(ds.keys())
                                         if key in PULSE_FEATURE_TAGS }
             self._baseFeatureNameMappings[rgID]  = baseFeatureNameMapping
             self._pulseFeatureNameMappings[rgID] = pulseFeatureNameMapping
 
             readGroupTable_.append((rgID, rgName, rgReadType, rgChem, rgFrameRate,
-                                    frozenset(baseFeatureNameMapping.iterkeys())))
+                                    frozenset(iter(baseFeatureNameMapping.keys()))))
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
@@ -128,9 +128,9 @@ class _BamReaderBase(ReaderBase):
         # The base/pulse features "available" to clients of this file are the intersection
         # of features available from each read group.
         self._baseFeaturesAvailable = set.intersection(
-            *[set(mapping.keys()) for mapping in self._baseFeatureNameMappings.values()])
+            *[set(mapping.keys()) for mapping in list(self._baseFeatureNameMappings.values())])
         self._pulseFeaturesAvailable = set.intersection(
-            *[set(mapping.keys()) for mapping in self._pulseFeatureNameMappings.values()])
+            *[set(mapping.keys()) for mapping in list(self._pulseFeatureNameMappings.values())])
 
     def _loadProgramInfo(self):
         pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))
@@ -407,7 +407,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             return self.atRowNumber(rowNumbers)
         elif isinstance(rowNumbers, slice):
             return ( self.atRowNumber(r)
-                     for r in xrange(*rowNumbers.indices(len(self))))
+                     for r in range(*rowNumbers.indices(len(self))))
         elif isinstance(rowNumbers, list) or isinstance(rowNumbers, np.ndarray):
             if len(rowNumbers) == 0:
                 return []

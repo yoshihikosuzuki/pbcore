@@ -1,7 +1,7 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
-from __future__ import division
+
+
 
 __all__ = [ "CmpH5Reader",
             "CmpH5Alignment",
@@ -573,7 +573,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         transcript = self.transcript(style="exonerate+")
         refPos = self.referencePositions()
         refPosString = "".join([str(pos % 10) for pos in refPos])
-        for i in xrange(0, len(alignedRef), COLUMNS):
+        for i in range(0, len(alignedRef), COLUMNS):
             val += "\n"
             val += "  " + refPosString[i:i+COLUMNS] + "\n"
             val += "  " + alignedRef  [i:i+COLUMNS] + "\n"
@@ -738,7 +738,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         for (alnGroupId, alnGroupPath) in zip(self.file["/AlnGroup/ID"][:],
                                               self.file["/AlnGroup/Path"][:]):
             alnGroup = self.file[alnGroupPath]
-            self._alignmentGroupById[alnGroupId] = dict(alnGroup.items())
+            self._alignmentGroupById[alnGroupId] = dict(list(alnGroup.items()))
 
 
     def _loadMovieInfo(self):
@@ -752,10 +752,10 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             timeScale = [1.0] * numMovies
 
         self._movieInfoTable = np.rec.fromrecords(
-            zip(self.file["/MovieInfo/ID"],
+            list(zip(self.file["/MovieInfo/ID"],
                 self.file["/MovieInfo/Name"],
                 frameRate,
-                timeScale),
+                timeScale)),
             dtype=[("ID"                  , int),
                    ("Name"                , object),
                    ("FrameRate"           , float),
@@ -772,12 +772,12 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         # missing chemistry info.
         assert (self._readGroupTable is None) and (self._readGroupDict is None)
         self._readGroupTable = np.rec.fromrecords(
-            zip(self._movieInfoTable.ID,
+            list(zip(self._movieInfoTable.ID,
                 self._movieInfoTable.Name,
                 [self.readType] * len(self._movieInfoTable.ID),
                 self.sequencingChemistry,
                 self._movieInfoTable.FrameRate,
-                [frozenset(self.baseFeaturesAvailable())] * len(self._movieInfoTable.ID)),
+                [frozenset(self.baseFeaturesAvailable())] * len(self._movieInfoTable.ID))),
             dtype=[("ID"                 , np.int32),
                    ("MovieName"          , "O"),
                    ("ReadType"           , "O"),
@@ -789,18 +789,18 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
 
     def _loadReferenceInfo(self):
         _referenceGroupTbl = np.rec.fromrecords(
-            zip(self.file["/RefGroup/ID"][:],
+            list(zip(self.file["/RefGroup/ID"][:],
                 self.file["/RefGroup/RefInfoID"][:],
-                [path[1:] for path in self.file["/RefGroup/Path"]]),
+                [path[1:] for path in self.file["/RefGroup/Path"]])),
             dtype=[("ID"       , int),
                    ("RefInfoID", int),
                    ("Name"     , object)])
 
         _referenceInfoTbl = np.rec.fromrecords(
-            zip(self.file["/RefInfo/ID"][:],
+            list(zip(self.file["/RefInfo/ID"][:],
                 self.file["/RefInfo/FullName"][:],
                 self.file["/RefInfo/Length"][:],
-                self.file["/RefInfo/MD5"][:]) ,
+                self.file["/RefInfo/MD5"][:])) ,
             dtype=[("RefInfoID", int),
                    ("FullName" , object),
                    ("Length"   , int),
@@ -859,10 +859,10 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
 
         if "Barcode" in self.file["/AlnInfo"]:
             # Build forward and backwards id<->label lookup tables
-            self._barcodeName = OrderedDict(zip(self.file["/BarcodeInfo/ID"],
-                                                self.file["/BarcodeInfo/Name"]))
-            self._barcode     = OrderedDict(zip(self.file["/BarcodeInfo/Name"],
-                                                self.file["/BarcodeInfo/ID"]))
+            self._barcodeName = OrderedDict(list(zip(self.file["/BarcodeInfo/ID"],
+                                                self.file["/BarcodeInfo/Name"])))
+            self._barcode     = OrderedDict(list(zip(self.file["/BarcodeInfo/Name"],
+                                                self.file["/BarcodeInfo/ID"])))
             # Barcode ID per row
             self._barcodes = self.file["/AlnInfo/Barcode"].value[:,1]
 
@@ -1035,8 +1035,8 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             >>> c.versionAtLeast("1.3.0")
             False
         """
-        myVersionTuple = map(int, self.version.split(".")[:3])
-        minimalVersionTuple = map(int, minimalVersion.split(".")[:3])
+        myVersionTuple = list(map(int, self.version.split(".")[:3]))
+        minimalVersionTuple = list(map(int, minimalVersion.split(".")[:3]))
         return myVersionTuple >= minimalVersionTuple
 
     def softwareVersion(self, programName):
@@ -1044,8 +1044,8 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         Return the version of program `programName` that processed
         this file.
         """
-        filelog = dict(zip(self.file["/FileLog/Program"],
-                           self.file["/FileLog/Version"]))
+        filelog = dict(list(zip(self.file["/FileLog/Program"],
+                           self.file["/FileLog/Version"])))
         return filelog.get(programName, None)
 
     @property
@@ -1065,7 +1065,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
 
     @property
     def movieNames(self):
-        return set([mi.Name for mi in self._movieDict.values()])
+        return set([mi.Name for mi in list(self._movieDict.values())])
 
     @property
     def ReadGroupID(self):
@@ -1176,8 +1176,8 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             False
 
         """
-        return all(featureName in alnGroup.keys()
-                   for alnGroup in self._alignmentGroupById.values())
+        return all(featureName in list(alnGroup.keys())
+                   for alnGroup in list(self._alignmentGroupById.values()))
 
     def baseFeaturesAvailable(self):
         """
@@ -1189,9 +1189,9 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             [u'QualityValue', u'IPD', u'PulseWidth', u'InsertionQV', u'DeletionQV']
 
         """
-        baseFeaturesByMovie = [ alnGroup.keys()
-                                 for alnGroup in self._alignmentGroupById.values() ]
-        baseFeaturesAvailableAsSet = set.intersection(*map(set, baseFeaturesByMovie))
+        baseFeaturesByMovie = [ list(alnGroup.keys())
+                                 for alnGroup in list(self._alignmentGroupById.values()) ]
+        baseFeaturesAvailableAsSet = set.intersection(*list(map(set, baseFeaturesByMovie)))
         baseFeaturesAvailableAsSet.discard("AlnArray")
         return list(baseFeaturesAvailableAsSet)
 
@@ -1242,7 +1242,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             return CmpH5Alignment(self, rowNumbers)
         elif isinstance(rowNumbers, slice):
             return [CmpH5Alignment(self, r)
-                    for r in xrange(*rowNumbers.indices(len(self)))]
+                    for r in range(*rowNumbers.indices(len(self)))]
         elif isinstance(rowNumbers, list) or isinstance(rowNumbers, np.ndarray):
             if len(rowNumbers) == 0:
                 return []
@@ -1255,7 +1255,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         raise TypeError("Invalid type for CmpH5Reader slicing")
 
     def __iter__(self):
-        return (self[i] for i in xrange(len(self)))
+        return (self[i] for i in range(len(self)))
 
     def __len__(self):
         return len(self.alignmentIndex)

@@ -1,5 +1,5 @@
-from __future__ import absolute_import
-from __future__ import division
+
+
 
 try:
     import h5py
@@ -79,7 +79,7 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
     """Write a barcode file from a list of labeled ZMWs. In addition
     to labeledZmws, this function takes a
     pbbarcode.BarcodeLabeler."""
-    bestScores = map(lambda z: z.toBestRecord(), labeledZmws)
+    bestScores = [z.toBestRecord() for z in labeledZmws]
     outDta = n.vstack(bestScores)
     outH5 = h5py.File(outFile, 'a')
 
@@ -107,9 +107,9 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
         def makeRecord(lZmw):
             zmws = makeArray(nBarcodes * lZmw.nScored, lZmw.holeNumber)
             adapters = n.concatenate([makeArray(nBarcodes, i) for i in \
-                                          xrange(1, lZmw.nScored + 1)])
-            idxs = n.concatenate([range(0, nBarcodes) for i in \
-                                      xrange(0, lZmw.nScored)])
+                                          range(1, lZmw.nScored + 1)])
+            idxs = n.concatenate([list(range(0, nBarcodes)) for i in \
+                                      range(0, lZmw.nScored)])
             scores = n.concatenate(lZmw.allScores)
             return n.transpose(n.vstack((zmws, adapters, idxs, scores)))
 
@@ -142,12 +142,12 @@ class BarcodeH5Reader(object):
         self._movieName = self.bestDS.attrs['movieName']
         # zmw => LabeledZmw
         labeledZmws = [LabeledZmw.fromBestRecord(self.bestDS[i,:]) for i in
-                       xrange(0, self.bestDS.shape[0])]
+                       range(0, self.bestDS.shape[0])]
         self.labeledZmws = dict([(lZmw.holeNumber, lZmw) for lZmw in labeledZmws])
 
         # barcode => LabeledZmws
         self.bcLabelToLabeledZmws = {l:[] for l in self.barcodeLabels}
-        for lZmw in self.labeledZmws.values():
+        for lZmw in list(self.labeledZmws.values()):
             d = self.bcLabelToLabeledZmws[self.barcodeLabels[lZmw.bestIdx]]
             d.append(lZmw)
 
@@ -190,7 +190,7 @@ class MPBarcodeH5Reader(object):
             return (n.min(x), n.max(x))
         # these aren't the ranges of ZMWs, but the ranges for the
         # scored ZMWs.
-        self._bins = map(lambda z : rng(z.holeNumbers), self._parts)
+        self._bins = [rng(z.holeNumbers) for z in self._parts]
 
     def choosePart(self, holeNumber):
         for i,b in enumerate(self._bins):
@@ -218,8 +218,7 @@ class MPBarcodeH5Reader(object):
 
     def labeledZmwsFromBarcodeLabel(self, bcLabel):
         lzmws = reduce(lambda x,y: x + y,
-                      map(lambda z: z.labeledZmwsFromBarcodeLabel(bcLabel),
-                          self._parts))
+                      [z.labeledZmwsFromBarcodeLabel(bcLabel) for z in self._parts])
         return sorted(lzmws, key=lambda z: z.holeNumber)
 
     def __iter__(self):
@@ -235,7 +234,7 @@ class MPBarcodeH5Reader(object):
             return self.labeledZmwsFromBarcodeLabel(item)
         elif isinstance(item, slice):
             return [ self.labeledZmwFromHoleNumber(item)
-                    for r in xrange(*item.indices(len(self)))]
+                    for r in range(*item.indices(len(self)))]
         elif isinstance(item, list) or isinstance(item, n.ndarray):
             if len(item) == 0:
                 return []
@@ -269,7 +268,7 @@ class BarcodeH5Fofn(object):
                 self._byMovie[bc.movieName].append(bc)
 
         self.mpReaders = { movieName: parts[0] if len(parts) == 1 else MPBarcodeH5Reader(parts)
-                           for movieName, parts in self._byMovie.iteritems() }
+                           for movieName, parts in self._byMovie.items() }
 
     @property
     def holeNumbers(self):
@@ -277,7 +276,7 @@ class BarcodeH5Fofn(object):
                           for hn in reader.holeNumbers])
     @property
     def movieNames(self):
-        return self.mpReaders.keys()
+        return list(self.mpReaders.keys())
     @property
     def barcodeLabels(self):
         return self._bcH5s[0].barcodeLabels
@@ -288,8 +287,7 @@ class BarcodeH5Fofn(object):
 
     def labeledZmwsFromBarcodeLabel(self, item):
         lzmws = reduce(lambda x,y: x + y,
-                      map(lambda z: z.labeledZmwsFromBarcodeLabel(item),
-                          self._bcH5s))
+                      [z.labeledZmwsFromBarcodeLabel(item) for z in self._bcH5s])
         return sorted(lzmws, key=lambda z: z.holeNumber )
 
     def labeledZmwFromName(self, item):

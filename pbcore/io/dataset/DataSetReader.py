@@ -2,7 +2,7 @@
 
 
 """ Input and output functions for DataSet XML files"""
-from __future__ import absolute_import
+
 
 import os.path
 import functools

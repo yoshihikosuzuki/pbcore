@@ -1,5 +1,5 @@
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 
 try:
     import h5py
@@ -53,7 +53,7 @@ def splitFileContents(f, delimiter, BLOCKSIZE=8192):
 
 def is_string_like(obj):
     'Return True if *obj* looks like a string'
-    if isinstance(obj, (str, bytes)): return True
+    if isinstance(obj, str): return True
     # numpy strings are subclass of str, ma strings are not
     if np.ma.isMaskedArray(obj):
         if obj.ndim == 0 and obj.dtype.kind in 'SU':
@@ -168,8 +168,8 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
             newrec[name] = 0
 
     if jointype != 'inner' and defaults is not None: # fill in the defaults enmasse
-        newrec_fields = newrec.dtype.fields.keys()
-        for k, v in defaults.items():
+        newrec_fields = list(newrec.dtype.fields.keys())
+        for k, v in list(defaults.items()):
             if k in newrec_fields:
                 newrec[k] = v
 

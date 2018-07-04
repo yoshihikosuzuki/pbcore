@@ -1,6 +1,6 @@
 # Author: Martin D. Smith
 
-from __future__ import absolute_import
+
 
 class InvalidDataSetIOError(Exception):
     """The base class for all DataSetIO related custom exceptions

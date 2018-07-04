@@ -4,7 +4,7 @@
 # Generated 2018-06-05 07:54:08.049991 by PyXB version 1.2.4 using Python 2.7.9.final.0
 # Namespace http://pacificbiosciences.com/PacBioBaseDataModel.xsd [xmlns:pbbase]
 
-from __future__ import unicode_literals
+
 import pyxb
 import pyxb.binding
 import pyxb.binding.saxer

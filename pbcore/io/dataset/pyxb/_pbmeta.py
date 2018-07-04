@@ -4,7 +4,7 @@
 # Generated 2018-06-05 07:54:08.153544 by PyXB version 1.2.4 using Python 2.7.9.final.0
 # Namespace http://pacificbiosciences.com/PacBioCollectionMetadata.xsd [xmlns:pbmeta]
 
-from __future__ import unicode_literals
+
 import pyxb
 import pyxb.binding
 import pyxb.binding.saxer
@@ -24,10 +24,10 @@ if pyxb.__version__ != _PyXBVersion:
     raise pyxb.PyXBVersionError(_PyXBVersion)
 
 # Import bindings for namespaces imported into schema
-import _pbbase as _ImportedBinding__pbbase
+from . import _pbbase as _ImportedBinding__pbbase
 import pyxb.binding.datatypes
-import _pbrk as _ImportedBinding__pbrk
-import _pbsample as _ImportedBinding__pbsample
+from . import _pbrk as _ImportedBinding__pbrk
+from . import _pbsample as _ImportedBinding__pbsample
 
 # NOTE: All namespace declarations are reserved within the binding
 Namespace = pyxb.namespace.NamespaceForURI('http://pacificbiosciences.com/PacBioCollectionMetadata.xsd', create_if_missing=True)

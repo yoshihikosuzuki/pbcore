@@ -3,7 +3,7 @@
 """
 I/O support for FASTQ files
 """
-from __future__ import absolute_import
+
 
 __all__ = [ "FastqRecord",
             "FastqReader",
@@ -176,7 +176,7 @@ class FastqReader(ReaderBase):
         One-shot iteration support
         """
         while True:
-            lines = [next(self.file) for i in xrange(4)]
+            lines = [next(self.file) for i in range(4)]
             yield FastqRecord(lines[0][1:-1],
                               lines[1][:-1],
                               qualityString=lines[3][:-1])
@@ -227,4 +227,4 @@ def qvsFromAscii(s):
     return (np.fromstring(s, dtype=np.uint8) - 33)
 
 def asciiFromQvs(a):
-    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring().decode('utf-8')
+    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring()

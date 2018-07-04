@@ -1,6 +1,6 @@
 # Authors: David Alexander, Jim Bullard
 
-from __future__ import absolute_import
+
 
 __all__ = [ "BasH5Reader"     ,
             "BaxH5Reader"     ,
@@ -232,7 +232,7 @@ class ZmwRead(CommonEqualityMixin):
 
     def basecalls(self):
         return arrayFromDataset(self._getBasecallsGroup()["Basecall"],
-                                self.offsetBegin, self.offsetEnd).tostring().decode('utf-8')
+                                self.offsetBegin, self.offsetEnd).tostring()
 
     def qv(self, qvName):
         return arrayFromDataset(self._getBasecallsGroup()[qvName],
@@ -275,18 +275,18 @@ def _makeOffsetsDataStructure(h5Group):
     endOffset = np.cumsum(numEvent, dtype=np.uint32)
     singleZero = np.array([0], dtype=np.uint32)
     beginOffset = np.hstack((singleZero, endOffset[0:-1]))
-    offsets = zip(beginOffset, endOffset)
-    return dict(zip(holeNumber, offsets))
+    offsets = list(zip(beginOffset, endOffset))
+    return dict(list(zip(holeNumber, offsets)))
 
 def _makeRegionTableIndex(regionTableHoleNumbers):
     #  returns a dict: holeNumber -> (startRow, endRow)
     diffs = np.ediff1d(regionTableHoleNumbers,
                        to_begin=[1], to_end=[1])
     changepoints = np.flatnonzero(diffs)
-    startsAndEnds = zip(changepoints[:-1],
-                        changepoints[1:])
-    return dict(zip(np.unique(regionTableHoleNumbers),
-                    startsAndEnds))
+    startsAndEnds = list(zip(changepoints[:-1],
+                        changepoints[1:]))
+    return dict(list(zip(np.unique(regionTableHoleNumbers),
+                    startsAndEnds)))
 
 class BaxH5Reader(object):
     """
@@ -344,7 +344,7 @@ class BaxH5Reader(object):
         it to the ZMW data.
         """
         holeNumbers = self._mainBasecallsGroup["ZMW/HoleNumber"].value
-        self._holeNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
+        self._holeNumberToIndex = dict(list(zip(holeNumbers, list(range(len(holeNumbers))))))
 
         #
         # Region table
@@ -470,9 +470,6 @@ class BaxH5Reader(object):
         else:
             movieNameString = movieNameAttr
 
-        if isinstance(movieNameString, bytes):
-            movieNameString = movieNameString.decode('utf-8')
-
         if not isinstance(movieNameString, str):
             raise TypeError("Unsupported movieName {m} of type {t}."
                              .format(m=movieNameString,
@@ -554,7 +551,7 @@ class BaxH5Reader(object):
         self.close()
 
     def listZmwMetrics(self):
-        return self._basecallsGroup["ZMWMetrics"].keys()
+        return list(self._basecallsGroup["ZMWMetrics"].keys())
 
     def zmwMetric(self, name, index):
         # we are going to cache these lazily because it is very likely
@@ -657,8 +654,8 @@ class BasH5Reader(object):
                 directory = op.dirname(self.filename)
                 self._parts = [ BaxH5Reader(op.join(directory, fn))
                                 for fn in self.file["/MultiPart/Parts"] ]
-                self._holeLookupDict = dict(zip(self.file["/MultiPart/HoleLookup"][:,0],
-                                                self.file["/MultiPart/HoleLookup"][:,1]))
+                self._holeLookupDict = dict(list(zip(self.file["/MultiPart/HoleLookup"][:,0],
+                                                self.file["/MultiPart/HoleLookup"][:,1])))
                 self._holeLookup = self._holeLookupDict.get
             else:
                 self._parts = [ BaxH5Reader(self.filename) ]
@@ -738,7 +735,7 @@ class BasH5Reader(object):
             return self._getitemScalar(holeNumbers)
         elif isinstance(holeNumbers, slice):
             return [ self._getitemScalar(r)
-                     for r in xrange(*holeNumbers.indices(len(self)))]
+                     for r in range(*holeNumbers.indices(len(self)))]
         elif isinstance(holeNumbers, list) or isinstance(holeNumbers, np.ndarray):
             if len(holeNumbers) == 0:
                 return []
@@ -812,7 +809,7 @@ class BasH5Collection(object):
             else:
                 basFilenames.append(arg)
 
-        movieNames = map(sniffMovieName, basFilenames)
+        movieNames = list(map(sniffMovieName, basFilenames))
         movieNamesAndFiles = sorted(zip(movieNames, basFilenames))
 
         self.readers = OrderedDict(
@@ -821,7 +818,7 @@ class BasH5Collection(object):
 
     @property
     def movieNames(self):
-        return self.readers.keys()
+        return list(self.readers.keys())
 
     def __getitem__(self, key):
         """
@@ -846,7 +843,7 @@ class BasH5Collection(object):
             if indices[2] == "ccs":
                 result = result.ccsRead
             else:
-                start, end = map(int, indices[2].split("_"))
+                start, end = list(map(int, indices[2].split("_")))
                 result = result.read(start, end)
         return result
 
@@ -855,20 +852,20 @@ class BasH5Collection(object):
     #
 
     def __iter__(self):
-        for reader in self.readers.values():
+        for reader in list(self.readers.values()):
             for zmw in reader: yield zmw
 
     def reads(self):
-        for reader in self.readers.values():
+        for reader in list(self.readers.values()):
             for read in reader.reads():
                 yield read
 
     def subreads(self):
-        for reader in self.readers.values():
+        for reader in list(self.readers.values()):
             for read in reader.subreads():
                 yield read
 
     def ccsReads(self):
-        for reader in self.readers.values():
+        for reader in list(self.readers.values()):
             for read in reader.ccsReads():
                 yield read

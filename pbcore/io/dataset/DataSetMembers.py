@@ -59,8 +59,8 @@ Notes:
 
 """
 
-from __future__ import absolute_import
-from __future__ import division
+
+
 
 import ast
 import uuid
@@ -70,7 +70,8 @@ import os
 import operator as OP
 import numpy as np
 import re
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse
+from urllib.parse import unquote
 from functools import partial as P
 from collections import Counter, defaultdict
 from pbcore.io.dataset.utils import getTimeStampedName
@@ -101,7 +102,7 @@ def newUuid(record):
 
 def map_val_or_vec(func, target):
     if isinstance(target, (list, tuple, np.ndarray)):
-        return map(func, target)
+        return list(map(func, target))
     else:
         return func(target)
 
@@ -175,8 +176,8 @@ def isFile(string):
 
 def qnamer(qid2mov, qId, hn, qs, qe):
     movs = np.empty_like(qId, dtype='S{}'.format(
-        max(map(len, qid2mov.values()))))
-    for k, v in qid2mov.items():
+        max(list(map(len, list(qid2mov.values()))))))
+    for k, v in list(qid2mov.items()):
         movs[qId == k] = v
     return (movs, hn, qs, qe)
 
@@ -192,7 +193,7 @@ def breakqname(qname):
 def qname2vec(qnames):
     if isinstance(qnames, str):
         qnames = [qnames]
-    return zip(*[breakqname(q) for q in qnames])
+    return list(zip(*[breakqname(q) for q in qnames]))
 
 class PbiFlags(object):
     NO_LOCAL_CONTEXT = 0
@@ -306,7 +307,7 @@ class RecordWrapper(object):
                 # register a callback to append this object to the parent, so
                 # that it will be added to the XML file
                 self.registerCallback(runonce(P(parent.append, self.record)))
-        assert 'tag' in self.record.keys()
+        assert 'tag' in list(self.record.keys())
 
         # we could do the same with namespace, but it isn't used in nonzero, so
         # we can just update it:
@@ -340,7 +341,7 @@ class RecordWrapper(object):
             return True
         return False
 
-    def __nonzero__(self):
+    def __bool__(self):
         # py2 compatibility
         # https://docs.djangoproject.com/en/1.11/topics/python3/
         return type(self).__bool__(self)
@@ -603,7 +604,7 @@ class Filters(RecordWrapper):
                     return True
         return False
 
-    def __nonzero__(self):
+    def __bool__(self):
         # py2 compatibility
         # https://docs.djangoproject.com/en/1.11/topics/python3/
         return type(self).__bool__(self)
@@ -807,7 +808,7 @@ class Filters(RecordWrapper):
                 if 'RefGroupID' in indexRecords.dtype.names:
                     accMap['rname'] = (lambda x: x.RefGroupID)
             accMap['qname'] = P(accMap['qname'],
-                                {v:k for k, v in movieMap.items()})
+                                {v:k for k, v in list(movieMap.items())})
             # check for hdf resources:
             if 'MovieID' in indexRecords.dtype.names:
                 # TODO(mdsmith)(2016-01-29) remove these once the fields are
@@ -829,7 +830,7 @@ class Filters(RecordWrapper):
             lastResult = np.ones(len(indexRecords), dtype=np.bool_)
             for req in filt:
                 param = req.name
-                if param in accMap.keys():
+                if param in list(accMap.keys()):
                     # Treat "value" as a string of a list of potential values
                     # if operator is 'in', or 'in' masquerading as '=='.
                     # Have to be careful with bc and other values that are
@@ -909,8 +910,8 @@ class Filters(RecordWrapper):
         if self.submetadata:
             origFilts = copy.deepcopy(list(self))
             self.record['children'] = []
-            newFilts = [copy.deepcopy(origFilts) for _ in kwargs.values()[0]]
-            for name, options in kwargs.items():
+            newFilts = [copy.deepcopy(origFilts) for _ in list(kwargs.values())[0]]
+            for name, options in list(kwargs.items()):
                 for i, (oper, val) in enumerate(options):
                     for filt in newFilts[i]:
                         if isinstance(val, np.ndarray):
@@ -919,8 +920,8 @@ class Filters(RecordWrapper):
             for filtList in newFilts:
                 self.extend(filtList)
         else:
-            newFilts = [Filter() for _ in kwargs.values()[0]]
-            for name, options in kwargs.items():
+            newFilts = [Filter() for _ in list(kwargs.values())[0]]
+            for name, options in list(kwargs.items()):
                 for i, (oper, val) in enumerate(options):
                     if isinstance(val, np.ndarray):
                         val = list(val)
@@ -941,7 +942,7 @@ class Filters(RecordWrapper):
         if not kwargs:
             return
         newFilt = Filter()
-        for name, options in kwargs.items():
+        for name, options in list(kwargs.items()):
             for oper, val in options:
                 newFilt.addRequirement(name, oper, val)
         self.append(newFilt)
@@ -1001,15 +1002,15 @@ class Filters(RecordWrapper):
         """Add requirements to each of the existing requirements, mapped one
         to one"""
         # Check that all lists of values are the same length:
-        values = kwargs.values()
+        values = list(kwargs.values())
         if len(values) > 1:
             for v in values[1:]:
                 assert len(v) == len(values[0])
 
         # Check that this length is equal to the current number of filters:
-        assert len(kwargs.values()[0]) == len(list(self))
+        assert len(list(kwargs.values())[0]) == len(list(self))
 
-        for req, opvals in kwargs.items():
+        for req, opvals in list(kwargs.items()):
             for filt, opval in zip(self, opvals):
                 filt.addRequirement(req, opval[0], opval[1])
         self._runCallbacks()
@@ -1842,7 +1843,7 @@ class StatsMetadata(RecordWrapper):
                     dtype(chan))
             return chans
         else:
-            return map(dtype, tbr)
+            return list(map(dtype, tbr))
 
     def availableDists(self):
         return [c.metaname for c in self]
@@ -2188,8 +2189,8 @@ class DiscreteDistribution(RecordWrapper):
             raise BinNumberMismatchError(self.numBins, other.numBins)
         if set(self.labels) != set(other.labels):
             raise BinMismatchError
-        sBins = zip(self.labels, self.bins)
-        oBins = dict(zip(other.labels, other.bins))
+        sBins = list(zip(self.labels, self.bins))
+        oBins = dict(list(zip(other.labels, other.bins)))
         self.bins = [value + oBins[key] for key, value in sBins]
 
     @property

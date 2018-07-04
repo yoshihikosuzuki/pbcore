@@ -1,7 +1,7 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
-from __future__ import division
+
+
 
 from functools import wraps
 from bisect import bisect_right, bisect_left
@@ -566,7 +566,7 @@ class BamAlignment(AlignmentRecordMixin):
             transcript = self.transcript(style="exonerate+")
             refPos = self.referencePositions()
             refPosString = "".join([str(pos % 10) for pos in refPos])
-            for i in xrange(0, len(alignedRef), COLUMNS):
+            for i in range(0, len(alignedRef), COLUMNS):
                 val += "\n"
                 val += "  " + refPosString[i:i+COLUMNS] + "\n"
                 val += "  " + alignedRef  [i:i+COLUMNS] + "\n"

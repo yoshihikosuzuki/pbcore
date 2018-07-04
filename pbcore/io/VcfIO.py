@@ -1,7 +1,7 @@
 # Author: Lance Hepler
 
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 
 """
 I/O support for VCF4 files.
@@ -44,27 +44,6 @@ def _empty_then(xs):
 
 @total_ordering
 class Vcf4Record(object):
-    """
-    Class for VCF record, providing uniform access to standard
-    VCF fields and attributes.
-
-    .. doctest::
-
-        >>> from pbcore.io import Vcf4Record
-        >>> rec1 = Vcf4Record("ecoliK12_pbi_March2013", \
-                              84, ".", "TG", "T", 48, "PASS", [("DP", 53)])
-        >>> str(rec1)
-        'ecoliK12_pbi_March2013\\t84\\t.\\tTG\\tT\\t48\\tPASS\\tDP=53'
-        >>> rec2 = Vcf4Record.fromString(str(rec1))
-        >>> rec1 == rec2
-        True
-        >>> rec1.pos
-        84
-        >>> rec1.filter
-        'PASS'
-
-    """
-
     __slots__ = ("chrom", "pos", "id", "ref", "alt", "qual", "filter", "info", "fields")
 
     def __init__(self, chrom, pos, id, ref, alt, qual, filt, info, *fields):
@@ -105,7 +84,7 @@ class Vcf4Record(object):
                 chrom=self.chrom, pos=self.pos, id=self.id,
                 ref=self.ref, alt=self.alt, qual=_fmt(self.qual),
                 filter=self.filter,
-                info=";".join("{0}={1}".format(k, _fmt(v)) for k, v in self.info.iteritems()),
+                info=";".join("{0}={1}".format(k, _fmt(v)) for k, v in self.info.items()),
                 fields="\t".join(_empty_then(self.fields)))
 
 
@@ -135,9 +114,9 @@ def merge_vcfs_sorted(vcf_files, output_file_name):
     sorted_files = sorted(fst_recs, key=lambda x: x[0])
     nrec = 0
     with open(output_file_name, "w") as oh:
-        for m, _ in meta.iteritems():
+        for m, _ in meta.items():
             print(m, file=oh)
-        print("#{0}".format("\t".join(h for h, _ in hdr.iteritems())), file=oh)
+        print("#{0}".format("\t".join(h for h, _ in hdr.items())), file=oh)
         for _, f in sorted_files:
             with open(f) as h:
                 for line in h:

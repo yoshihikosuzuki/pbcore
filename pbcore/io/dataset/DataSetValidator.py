@@ -2,12 +2,13 @@
 
 
 """Validate DataSet XML files"""
-from __future__ import absolute_import
-from __future__ import print_function
+
+
 
 import os
 import re
-from urllib.parse import urlparse, unquote
+from urllib.parse import urlparse
+from urllib.parse import unquote
 import xml.etree.ElementTree as ET
 import logging
 

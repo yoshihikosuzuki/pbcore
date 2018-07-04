@@ -1,6 +1,6 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
+
 
 from pbcore.io.base import ReaderBase
 

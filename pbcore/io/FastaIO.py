@@ -3,7 +3,7 @@
 """
 Streaming I/O support for FASTA files.
 """
-from __future__ import absolute_import
+
 
 __all__ = [ "FastaRecord",
             "FastaReader",
@@ -235,7 +235,7 @@ class FastaWriter(WriterBase):
 ##
 def wrap(s, columns):
     return "\n".join(s[start:start+columns]
-                     for start in xrange(0, len(s), columns))
+                     for start in range(0, len(s), columns))
 
 
 
@@ -260,7 +260,7 @@ def loadFastaIndex(faidxFilename, fastaView):
     # only "id" makes it into the fai.
     offsetEnd = 0
     for line in open(faidxFilename):
-        length, offset, lineWidth, blen = map(int, line.split()[-4:])
+        length, offset, lineWidth, blen = list(map(int, line.split()[-4:]))
         newlineWidth = blen - lineWidth                                # 2 for DOS, 1 for UNIX
         header_    = fastaView[offsetEnd:offset]
         assert (header_[0] == ">" and header_[-1] == "\n")
@@ -424,7 +424,7 @@ class IndexedFastaReader(ReaderBase, Sequence):
             key = len(self) + key
 
         if isinstance(key, slice):
-            indices = xrange(*key.indices(len(self)))
+            indices = range(*key.indices(len(self)))
             return [ IndexedFastaRecord(self.view, self.contigLookup[i])
                      for i in indices ]
         elif key in self.contigLookup:
@@ -433,7 +433,7 @@ class IndexedFastaReader(ReaderBase, Sequence):
             raise IndexError("Contig not in FastaTable")
 
     def __iter__(self):
-        return (self[i] for i in xrange(len(self)))
+        return (self[i] for i in range(len(self)))
 
     def __len__(self):
         return len(self.fai)

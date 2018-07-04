@@ -2,7 +2,7 @@
 
 
 """ Input and output functions for DataSet XML files"""
-from __future__ import absolute_import
+
 
 import copy, time
 import xml.etree.ElementTree as ET
@@ -119,7 +119,7 @@ TAGS = [
 ]
 
 def register_namespaces():
-    for prefix, uri in NAMESPACES.items():
+    for prefix, uri in list(NAMESPACES.items()):
         ET.register_namespace(prefix, uri)
 
 def _toElementTree(dataSet, root=None, core=False):
@@ -295,7 +295,7 @@ def _extResToXMLAttribs(extRes):
     as it requires knowledge of which members are appropriate for XML
     attributes and which are not."""
     attr = {}
-    for key, value in extRes.toDict().items():
+    for key, value in list(extRes.toDict().items()):
         if value and not (key == 'PacBioIndex' or key == 'PacBioMetadata'):
             attr[key] = value
     return attr

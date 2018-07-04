@@ -6,7 +6,7 @@ I/O support for GFF3 files.
 The specification for the GFF format is available at
     http://www.sequenceontology.org/gff3.shtml
 """
-from __future__ import absolute_import
+
 
 __all__ = [ "Gff3Record",
             "GffReader",
@@ -80,7 +80,7 @@ class Gff3Record(object):
         columns = s.rstrip().rstrip(";").split("\t")
         try:
             assert len(columns) == len(cls._GFF_COLUMNS)
-            attributes = map(tupleFromGffAttribute, columns[-1].split(";"))
+            attributes = list(map(tupleFromGffAttribute, columns[-1].split(";")))
             (_seqid, _source, _type, _start,
              _end, _score, _strand, _phase)  = columns[:-1]
             return Gff3Record(_seqid, int(_start), int(_end), _type,
@@ -99,7 +99,7 @@ class Gff3Record(object):
     def __str__(self):
         formattedAttributes = ";".join(
             ("%s=%s" % (k, self._formatField(v))
-             for (k, v) in self.attributes.iteritems()))
+             for (k, v) in self.attributes.items()))
         formattedFixedColumns = "\t".join(
             self._formatField(getattr(self, k))
             for k in self._GFF_COLUMNS[:-1])
@@ -222,7 +222,7 @@ def sort_gff(file_name, output_file_name=None):
         records.sort()
         with open(output_file_name, "w") as out:
             gff_out = GffWriter(out)
-            map(gff_out.writeHeader, f.headers)
+            list(map(gff_out.writeHeader, f.headers))
             for rec in records:
                 gff_out.writeRecord(rec)
     return output_file_name

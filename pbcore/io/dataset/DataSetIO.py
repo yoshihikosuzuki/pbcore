@@ -4,8 +4,8 @@
 """
 Classes representing DataSets of various types.
 """
-from __future__ import absolute_import
-from __future__ import division
+
+
 
 import copy
 import errno
@@ -416,12 +416,12 @@ class DataSet(object):
             for fname in self.toExternalFiles():
                 # due to h5 file types, must be unpythonic:
                 found = False
-                for allowed in self._metaTypeMapping().keys():
+                for allowed in list(self._metaTypeMapping().keys()):
                     if fname.endswith(allowed):
                         found = True
                         break
                 if not found:
-                    allowed = self._metaTypeMapping().keys()
+                    allowed = list(self._metaTypeMapping().keys())
                     extension = fname.split('.')[-1]
                     raise IOError(errno.EIO,
                                   "Cannot create {c} with resource of type "
@@ -1131,7 +1131,7 @@ class DataSet(object):
         if filename is None:
             checksts(self, subdatasets=True)
         else:
-            if isinstance(filename, basestring):
+            if isinstance(filename, str):
                 statsMetadata = parseStats(str(filename))
             else:
                 statsMetadata = filename
@@ -1153,7 +1153,7 @@ class DataSet(object):
             :filename: the filename of a <moviename>.metadata.xml file
 
         """
-        if isinstance(filename, basestring):
+        if isinstance(filename, str):
             if isDataSet(filename):
                 # path to DataSet
                 metadata = openDataSet(filename).metadata
@@ -1412,7 +1412,7 @@ class DataSet(object):
             else:
                 self.metadata = newMetadata
 
-        for key, value in kwargs.items():
+        for key, value in list(kwargs.items()):
             self.metadata.addMetadata(key, value)
 
     def updateCounts(self):
@@ -1529,7 +1529,7 @@ class DataSet(object):
         ExternalResources and record order within each file"""
         if self.isIndexed:
             # this uses the index to respect filters
-            for i in xrange(len(self)):
+            for i in range(len(self)):
                 yield self[i]
         else:
             # this uses post-filtering to respect filters
@@ -2120,14 +2120,14 @@ class ReadSet(DataSet):
             log.info("No barcodes found in BAM file, skipping split")
             return [self.copy()]
         barcodes = defaultdict(int)
-        for bcTuple in itertools.izip(self.index.bcForward,
+        for bcTuple in zip(self.index.bcForward,
                                       self.index.bcReverse):
             if bcTuple != (-1, -1):
                 barcodes[bcTuple] += 1
 
-        log.debug("{i} barcodes found".format(i=len(barcodes.keys())))
+        log.debug("{i} barcodes found".format(i=len(list(barcodes.keys()))))
 
-        atoms = barcodes.items()
+        atoms = list(barcodes.items())
 
         # The number of reads per barcode is used for balancing
         balanceKey = lambda x: x[1]
@@ -2171,7 +2171,7 @@ class ReadSet(DataSet):
             return [self.copy()]
 
         atoms = self.index.qId
-        movs = zip(*np.unique(atoms, return_counts=True))
+        movs = list(zip(*np.unique(atoms, return_counts=True)))
 
         # Zero chunks requested == 1 chunk per movie.
         if chunks == 0 or chunks > len(movs):
@@ -2319,7 +2319,7 @@ class ReadSet(DataSet):
             # reassign qIds if dupes:
             if len(set(tbr['ID'])) < len(tbr):
                 self._readGroupTableIsRemapped = True
-                tbr['ID'] = range(len(tbr))
+                tbr['ID'] = list(range(len(tbr)))
             return tbr.view(np.recarray)
         else:
             return responses[0]
@@ -2368,10 +2368,10 @@ class ReadSet(DataSet):
                      "MovieID field.")
         if self._readGroupTableIsRemapped:
             log.debug("Must correct index qId's")
-            qIdMap = dict(zip(rr.readGroupTable.ID,
-                              rr.readGroupTable.MovieName))
+            qIdMap = dict(list(zip(rr.readGroupTable.ID,
+                              rr.readGroupTable.MovieName)))
             nameMap = self.movieIds
-            for qId in qIdMap.keys():
+            for qId in list(qIdMap.keys()):
                 qId_acc(indices)[qId_acc(indices) == qId] = nameMap[
                     qIdMap[qId]]
 
@@ -2497,7 +2497,7 @@ class ReadSet(DataSet):
                          "lost")
             else:
                 for extres in self.externalResources:
-                    extres.reference = refCounts.keys()[0]
+                    extres.reference = list(refCounts.keys())[0]
         # reset the indexmap especially, as it is out of date:
         self._index = None
         self._indexMap = None
@@ -2770,13 +2770,13 @@ class AlignmentSet(ReadSet):
 
         if correctIds and self._stackedReferenceInfoTable:
             log.debug("Must correct index tId's")
-            tIdMap = dict(zip(rr.referenceInfoTable['ID'],
-                              rName(rr.referenceInfoTable)))
+            tIdMap = dict(list(zip(rr.referenceInfoTable['ID'],
+                              rName(rr.referenceInfoTable))))
             unfilteredRefTable = self._buildRefInfoTable(filterMissing=False)
-            rname2tid = dict(zip(unfilteredRefTable['Name'],
-                            unfilteredRefTable['ID']))
+            rname2tid = dict(list(zip(unfilteredRefTable['Name'],
+                            unfilteredRefTable['ID'])))
             #nameMap = self.refIds
-            for tId in tIdMap.keys():
+            for tId in list(tIdMap.keys()):
                 tId_acc(indices)[tId_acc(indices) == tId] = rname2tid[
                     tIdMap[tId]]
 
@@ -2891,7 +2891,7 @@ class AlignmentSet(ReadSet):
             return [self.copy()]
 
         atoms = self.index.tId
-        refs = zip(*np.unique(atoms, return_counts=True))
+        refs = list(zip(*np.unique(atoms, return_counts=True)))
 
         # Zero chunks requested == 1 chunk per reference.
         if chunks == 0 or chunks > len(refs):
@@ -3090,7 +3090,7 @@ class AlignmentSet(ReadSet):
         rnames = defaultdict(list)
         for atom in atoms:
             rnames[atom[0]].append(atom)
-        for rname, rAtoms in rnames.iteritems():
+        for rname, rAtoms in rnames.items():
             if len(rAtoms) > 1:
                 contour = self.intervalContour(rname)
                 splits = self.splitContour(contour, len(rAtoms))
@@ -3122,15 +3122,15 @@ class AlignmentSet(ReadSet):
         # pull both at once so you only have to mess with the
         # referenceInfoTable once.
         refLens = self.refLengths
-        refNames = refLens.keys()
+        refNames = list(refLens.keys())
         log.debug("{i} references found".format(i=len(refNames)))
 
         log.debug("Finding contigs")
         if byRecords:
             log.debug("Counting records...")
             atoms = [(rn, 0, 0, count)
-                     for rn, count in zip(refNames, map(self.countRecords,
-                                                        refNames))
+                     for rn, count in zip(refNames, list(map(self.countRecords,
+                                                        refNames)))
                      if count != 0]
             balanceKey = lambda x: self.countRecords(*x)
         else:
@@ -3269,10 +3269,10 @@ class AlignmentSet(ReadSet):
             # abstraction.
             if len(result._filters) > 100:
                 meanNum = self.numRecords//len(chunks)
-                result.numRecords = long(round(meanNum,
+                result.numRecords = int(round(meanNum,
                                                (-1 * len(str(meanNum))) + 3))
                 meanLen = self.totalLength//len(chunks)
-                result.totalLength = long(round(meanLen,
+                result.totalLength = int(round(meanLen,
                                                 (-1 * len(str(meanLen))) + 3))
             elif updateCounts:
                 result._openReaders = self._openReaders
@@ -3784,8 +3784,8 @@ class AlignmentSet(ReadSet):
         name. TODO(mdsmith)(2016-01-27): pick a better name for this method...
 
         """
-        return zip(self.referenceInfoTable['Name'],
-                   self.referenceInfoTable[key])
+        return list(zip(self.referenceInfoTable['Name'],
+                   self.referenceInfoTable[key]))
 
     def _idToRname(self, rId):
         """Map the DataSet.referenceInfoTable.ID to the superior unique
@@ -3926,7 +3926,7 @@ class ContigSet(DataSet):
                 matches[conId] = [con]
             else:
                 matches[conId].append(con)
-        for name, match_list in matches.items():
+        for name, match_list in list(matches.items()):
             matches[name] = np.array(match_list)
 
         writeTemp = False
@@ -3936,7 +3936,7 @@ class ContigSet(DataSet):
         if self._filters and not self.noFiltering:
             writeTemp = True
         if not writeTemp:
-            writeTemp = any([len(m) > 1 for n, m in matches.items()])
+            writeTemp = any([len(m) > 1 for n, m in list(matches.items())])
 
         def _get_windows(match_list):
             # look for the quiver window indication scheme from quiver:
@@ -3948,7 +3948,7 @@ class ContigSet(DataSet):
                                      "matching id, consolidation aborted")
             return windows
 
-        for name, match_list in matches.items():
+        for name, match_list in list(matches.items()):
             if len(match_list) > 1:
                 try:
                     windows = _get_windows(match_list)
@@ -4066,7 +4066,7 @@ class ContigSet(DataSet):
         for pos in possibilities:
             if not pos.isdigit():
                 return None
-        return np.array(map(int, possibilities))
+        return np.array(list(map(int, possibilities)))
 
     def _updateMetadata(self):
         # update contig specific metadata:
